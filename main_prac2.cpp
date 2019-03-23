@@ -1,588 +1,378 @@
 //Semestre 2019 - 2
-//*****             Lab. Computacion Gráfica                ************//
-//*****************  Visual studio 2017                     ***********//
-//************** Alumno (s): Bermudez Sotelo Gustavo       **********//
-//*************	Practica 5: Ejercicio Casa					   ******//
-//*************		Humanoide con Brazo super bionico ******//
 //************************************************************//
+//****************Visual Studio 2017**********************************************************//
+//************** Alumno (s): Bermudez Sotelo Gustavo *****************************************//
+//*************	Lab. Computación Gráfica   Gpo: 02										******//
+//**************Practica 7 Ejercicio Clase: Iluminacion de los planetas del Sistema Solar*****//
+//************************************************************//
+
 #include "Main.h"
 
-//Y rota brazo derecho
-//L rota brazo izquierdo
-//H rota hombro
-//P rota mano
-//M rotan dedos
 
-float transZ = 0.0f;
-float transX = 0.0f;
-float angleX = 0.0f;
-float angleY = 0.0f;
-int screenW = 0.0;
-int screenH = 0.0;
-float angHombro = 0.0;
-float angBrazo = 0.0;
-float angPalma = 0.0;
-float angDedo1 = 0.0;
-float angBrazo2 = 0.0;
+// Variables used to calculate frames per second: (Windows)
+DWORD dwFrames = 0;
+DWORD dwCurrentTime = 0;
+DWORD dwLastUpdateTime = 0;
+DWORD dwElapsedTime = 0;
+
+//lunas un poco separadas de los planetas para que se vean correcctamente rotar en el planeta
+
+//Variables used to create movement
+
+int sol = 0;
+int mercurio = 0;
+int venus = 0;
+int tierra = 0;
+int luna = 0;
+int marte = 0;
+int luna1 = 0;
+int luna2 = 0;
+int jupiter = 0;
+int luna1Jupiter = 0;
+int luna2jupiter = 0;
+int luna3jupiter = 0;
+int saturno = 0;
+int urano = 0;
+
+float camaraZ = 0.0;
+float camaraX = 0.0;
+
+float LightAngle = 30.0f;
+
+bool	light = false;		// Luz prende/apaga
+bool	positional = true;
+
+static int spin = 0;
+
+GLfloat LuzAmbientalSol[] = { 1.0f, 1.0f, 1.0f, 1.0f };			// Diffuse Light Values
+GLfloat LuzDifusaSol[] = { 1.0, 1.0, 1.0, 1.0 };				// Specular Light Values
+GLfloat LuzEspecularSol[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+GLfloat LuzPosicionSol[] = { 0.0f, 0.0f, 0.0f, 1.0f };		// Light Position
+
+GLfloat MercurioDiffuse[] = { 0.5f, 0.5f, 0.0f, 1.0f };			// Mercurio
+GLfloat MercurioSpecular[] = { 0.60, 0.60, 0.50, 1.0 };
+GLfloat MercurioShininess[] = { 32.0 };
+
+GLfloat VenusDiffuse[] = { 0.5f, 0.0f, 0.0f, 1.0f };			// Venus 				
+GLfloat VenusSpecular[] = { 0.7, 0.6, 0.6, 1.0 };
+GLfloat VenusShininess[] = { 32 };
+
+GLfloat TierraDiffuse[] = { 0.396f, 0.74151f, 0.69102f, 1.0f };	// Tierra  												
+GLfloat TierraSpecular[] = { 0.297254, 0.30829, 0.30667, 1.0 };
+GLfloat TierraShininess[] = { 12.8 };
+
+GLfloat LunaTierraDiffuse[] = { 0.780392f, 0.568627f, 0.113725f, 1.0f };	// LunaTierra										
+GLfloat LunaTierraSpecular[] = { 0.992157f, 0.941176f, 0.807843f, 1.0f };
+GLfloat LunaTierraShininess[] = { 27.8974f };
 
 
-GLfloat Position[] = { 0.0f, 3.0f, 0.0f, 1.0f };			// Light Position
-GLfloat Position2[] = { 0.0f, 0.0f, -5.0f, 1.0f };			// Light Position
+GLfloat MarsDiffuse[] = { 0.5, 0.5, 0.4, 1.0f };			// Marte  
+GLfloat MarsSpecular[] = { 0.7, 0.7, 0.4, 1.0 };
+GLfloat MarsShininess[] = { 78.125 };
 
-void InitGL(void)     // Inicializamos parametros
+GLfloat MarsLuna1Diffuse[] = { 0.714f, 0.4284f, 0.18144f, 1.0f };			// MarteLuna1
+GLfloat MarsLuna1Specular[] = { 0.393548f, 0.271906f, 0.166721f, 1.0f };
+GLfloat MarsLuna1Shininess[] = { 25.6f };
+
+GLfloat MarsLuna2Diffuse[] = { 0.396f, 0.74151f, 0.69102f, 0.8f };			// MarteLuna2
+GLfloat MarsLuna2Specular[] = { 0.297254f, 0.30829f, 0.306678f, 0.8f };
+GLfloat MarsLuna2Shininess[] = { 12.8f };
+
+GLfloat JupiterDiffuse[] = { 0.18275f, 0.17f, 0.22525f, 0.82f };			// Jupiter	
+GLfloat JupiterSpecular[] = { 0.332741f, 0.328634f, 0.346435f, 0.82f };
+GLfloat JupiterShininess[] = { 38.4f };
+
+GLfloat Luna1JupiterDiffuse[] = { 0.4f, 0.4f, 0.4f, 1.0f };			// Luna1Jupiter
+GLfloat Luna1JupiterSpecular[] = { 0.774597f, 0.774597f, 0.774597f, 1.0f };
+GLfloat Luna1JupiterShininess[] = { 76.8f };
+
+GLfloat Luna2JupiterDiffuse[] = { 0.61424f, 0.04136f, 0.04136f, 0.55f };			// JupiterLuna2
+GLfloat Luna2JupiterSpecular[] = { 0.727811f, 0.626959f, 0.626959f, 0.55f };
+GLfloat Luna2JupiterShininess[] = { 76.8f };
+
+GLfloat Luna3JupiterDiffuse[] = { 0.396f, 0.74151f, 0.69102f, 0.8f };			// JupiterLuna3
+GLfloat Luna3JupiterSpecular[] = { 0.297254f, 0.30829f, 0.306678f, 0.8f };
+GLfloat Luna3JupiterShininess[] = { 12.8f };
+
+GLfloat SaturnoDiffuse[] = { 0.34615f, 0.3143f, 0.0903f, 1.0f };			// Saturno 
+GLfloat SaturnoSpecular[] = { 0.797357f, 0.723991f, 0.208006f, 1.0f };
+GLfloat SaturnoShininess[] = { 83.2f };
+
+GLfloat Anillo1SaturnoDiffuse[] = { 0.5f,0.0f,0.0f,1.0f };			// Anillo1Saturno
+GLfloat Anillo1SaturnoSpecular[] = { 0.7f,0.6f,0.6f,1.0f };
+GLfloat Anillo1SaturnoShininess[] = { 32.0f };
+
+GLfloat Anillo2SaturnoDiffuse[] = { 0.0f,0.50980392f,0.50980392f,1.0f };			// Anillo2Saturno
+GLfloat Anillo2SaturnoSpecular[] = { 0.50196078f,0.50196078f,0.50196078f,1.0f };
+GLfloat Anillo2SaturnoShininess[] = { 32.0f };
+
+GLfloat UranoDiffuse[] = { 0.4f, 0.2368f, 0.1036f, 1.0f };			// Urano 
+GLfloat UranoSpecular[] = { 0.774597f, 0.458561f, 0.200621f, 1.0f };
+GLfloat UranoShininess[] = { 76.8f };
+
+
+void InitGL(GLvoid)     // Inicializamos parametros
 {
-
-	glShadeModel(GL_SMOOTH);							// Habilitamos Smooth Shading
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Negro de fondo
+
 	glClearDepth(1.0f);									// Configuramos Depth Buffer
 	glEnable(GL_DEPTH_TEST);							// Habilitamos Depth Testing
-
-	//Configuracion luz
-	glLightfv(GL_LIGHT0, GL_POSITION, Position);
-	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, Position2);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-
-
 	glDepthFunc(GL_LEQUAL);								// Tipo de Depth Testing a realizar
-	glEnable(GL_COLOR_MATERIAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-}
 
-void prisma(void)
-{
-	GLfloat vertice[8][3] = {
-				{0.5 ,-0.5, 0.5},    //Coordenadas Vértice 0 V0
-				{-0.5 ,-0.5, 0.5},    //Coordenadas Vértice 1 V1
-				{-0.5 ,-0.5, -0.5},    //Coordenadas Vértice 2 V2
-				{0.5 ,-0.5, -0.5},    //Coordenadas Vértice 3 V3
-				{0.5 ,0.5, 0.5},    //Coordenadas Vértice 4 V4
-				{0.5 ,0.5, -0.5},    //Coordenadas Vértice 5 V5
-				{-0.5 ,0.5, -0.5},    //Coordenadas Vértice 6 V6
-				{-0.5 ,0.5, 0.5},    //Coordenadas Vértice 7 V7
-	};
+	glLightfv(GL_LIGHT1, GL_AMBIENT, LuzAmbientalSol);				// Setup The Ambient Light
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, LuzDifusaSol);				// Setup The Diffuse Light
+	glLightfv(GL_LIGHT1, GL_SPECULAR, LuzEspecularSol);
 
-	glBegin(GL_POLYGON);	//Front
-	glNormal3f(0.0f, 0.0f, 1.0f);
-	glVertex3fv(vertice[0]);
-	glVertex3fv(vertice[4]);
-	glVertex3fv(vertice[7]);
-	glVertex3fv(vertice[1]);
-	glEnd();
-
-	glBegin(GL_POLYGON);	//Right
-	glNormal3f(1.0f, 0.0f, 0.0f);
-	glVertex3fv(vertice[0]);
-	glVertex3fv(vertice[3]);
-	glVertex3fv(vertice[5]);
-	glVertex3fv(vertice[4]);
-	glEnd();
-
-	glBegin(GL_POLYGON);	//Back
-	glNormal3f(0.0f, 0.0f, -1.0f);
-	glVertex3fv(vertice[6]);
-	glVertex3fv(vertice[5]);
-	glVertex3fv(vertice[3]);
-	glVertex3fv(vertice[2]);
-	glEnd();
-
-	glBegin(GL_POLYGON);  //Left
-	glNormal3f(-1.0f, 0.0f, 0.0f);
-	glVertex3fv(vertice[1]);
-	glVertex3fv(vertice[7]);
-	glVertex3fv(vertice[6]);
-	glVertex3fv(vertice[2]);
-	glEnd();
-
-	glBegin(GL_POLYGON);  //Bottom
-	glNormal3f(0.0f, -1.0f, 0.0f);
-	glVertex3fv(vertice[0]);
-	glVertex3fv(vertice[1]);
-	glVertex3fv(vertice[2]);
-	glVertex3fv(vertice[3]);
-	glEnd();
-
-	glBegin(GL_POLYGON);  //Top
-	glNormal3f(0.0f, 1.0f, 0.0f);
-	glVertex3fv(vertice[4]);
-	glVertex3fv(vertice[5]);
-	glVertex3fv(vertice[6]);
-	glVertex3fv(vertice[7]);
-	glEnd();
+	glEnable(GL_LIGHT1);
 }
 
 void display(void)   // Creamos la funcion donde se dibuja
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Limiamos pantalla y Depth Buffer
-	//glMatrixMode(GL_MODELVIEW);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	glTranslatef(transX, 0.0f, transZ);
-	glRotatef(angleY, 0.0, 1.0, 0.0);
-	glRotatef(angleX, 1.0, 0.0, 0.0);
+	glTranslatef(camaraX, 0.0, -5.0 + camaraZ);			//camara
 
-	//Poner Código Aquí. (0,0,0)
+	glLightfv(GL_LIGHT1, GL_POSITION, LuzPosicionSol);
 
-	glPushMatrix();//torso
-	glTranslatef(-7.5, -3.75, 0);
-	glScalef(10, 10, 5);
+	glEnable(GL_LIGHTING);
+
+	glPushMatrix(); //Sistema solar, es el general para todo
+
+
+	glPushMatrix();//sol
+	glRotatef(sol, 0.0, 1.0, 0.0);	//El Sol gira sobre su eje pero para ello el rotatef queda fuera para que mueva a todo
+	glDisable(GL_LIGHTING);
+	glColor3f(1.0, 1.0, 0.0);	//Sol amarillo
+	glutSolidSphere(1.9, 18, 18);  //Draw Sun (radio,H,V); mientras mas puntos tenga aqui mas circular se vera
+	glEnable(GL_LIGHTING);
+
+
+	glPushMatrix();//mercurio
+	glRotatef(mercurio, 0, 1, 0);
+	glTranslatef(3.2, 0, 0);
+	glRotatef(mercurio, 0, 1, 0);
+	glColor3f(0.5, 0.5, 0.5);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, MercurioDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, MercurioSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, MercurioShininess);
+
+	glutSolidSphere(0.3, 8, 8);
+	glPopMatrix();
+
+	glPushMatrix();//venus
+	glRotatef(venus, 0, 1, 0);
+	glTranslatef(4.7, 0, 0);
+	glRotatef(venus, 0, 1, 0);
+	glColor3f(0.0, 0.8, 1.0);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, VenusDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, VenusSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, VenusShininess);
+
+	glutSolidSphere(0.5, 9, 8);
+	glPopMatrix();
+
+	glPushMatrix();//tierra
+	glRotatef(tierra, 0, 1, 0);
+	glTranslatef(6.4, 0, 0);
+	glRotatef(tierra, 0, 1, 0);
+	glColor3f(0.7, 0.8, 1.0);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, TierraDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, TierraSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, TierraShininess);
+
+	glutSolidSphere(0.7, 8, 8);
+
+	glPushMatrix();//luna tierra
+	glRotatef(luna, 0, 1, 0);
+	glTranslatef(1.0, 0, 0);
+	glRotatef(luna, 0, 1, 0);
+	glColor3f(7.7, 7.8, 7.0);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, LunaTierraDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, LunaTierraSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, LunaTierraShininess);
+
+	glutSolidSphere(0.1, 8, 8);
+	glPopMatrix();
+	glPopMatrix();
+
+	glPushMatrix();//marte
+	glRotatef(marte, 0, 1, 0);
+	glTranslatef(8.4, 0, 0);
+	glRotatef(marte, 0, 1, 0);
+	glColor3f(1.0, 0.0, 0.0);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, MarsDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, MarsSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, MarsShininess);
+
+	glutSolidSphere(0.4, 8, 8);
+
+	glPushMatrix();//luna1 marte
+	glRotatef(luna1, 0, 1, 0);
+	glTranslatef(0.5, 0, 0);
+	glRotatef(luna1, 0, 1, 0);
+	glColor3f(0.1, 0.8, 0.8);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, MarsLuna1Diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, MarsLuna1Specular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, MarsLuna1Shininess);
+
+	glutSolidSphere(0.1, 8, 8);
+
+	glPushMatrix();//luna2 marte
+	glRotatef(luna2, 0, 1, 0);
+	glTranslatef(0.5, 0, 0);
+	glRotatef(luna2, 0, 1, 0);
+	glColor3f(0.1, 0.8, 0.8);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, MarsLuna2Diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, MarsLuna2Specular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, MarsLuna2Shininess);
+
+	glutSolidSphere(0.1, 8, 8);
+	glPopMatrix();
+	glPopMatrix();
+	glPopMatrix();
+
+
+	glPushMatrix();//jupiter
+	glRotatef(jupiter, 0, 1, 0);
+	glTranslatef(11, 0, 0);
+	glRotatef(jupiter, 0, 1, 0);
+	glColor3f(1.0, 1.0, 0.7);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, JupiterDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, JupiterSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, JupiterShininess);
+
+	glutSolidSphere(1, 8, 9);
+
+	glPushMatrix();//luna1Jupiter
+	glRotatef(luna1Jupiter, 0, 1, 0);
+	glTranslatef(1.2, 0, 0);
+	glRotatef(luna1Jupiter, 0, 1, 0);
+	glColor3f(1.0, 0.4, 0.7);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, Luna1JupiterDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, Luna1JupiterSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, Luna1JupiterShininess);
+
+	glutSolidSphere(0.1, 8, 9);
+
+	glPushMatrix();//luna2Jupiter
+	glRotatef(luna2jupiter, 0, 1, 0);
+	glTranslatef(1.4, 0, 0);
+	glRotatef(luna2jupiter, 0, 1, 0);
+	glColor3f(1.0, 0.4, 0.7);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, Luna2JupiterDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, Luna2JupiterSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, Luna2JupiterShininess);
+
+	glutSolidSphere(0.2, 9, 9);
+
+	glPushMatrix();//luna3upiter
+	glRotatef(luna3jupiter, 0, 1, 0);
+	glTranslatef(1.6, 0, 0);
+	glRotatef(luna3jupiter, 0, 1, 0);
+	glColor3f(1.0, 1.0, 0.7);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, Luna3JupiterDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, Luna3JupiterSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, Luna3JupiterShininess);
+
+	glutSolidSphere(0.2, 9, 9);
+	glPopMatrix();
+	glPopMatrix();
+	glPopMatrix();
+	glPopMatrix();
+
+
+	glPushMatrix();//saturno
+	glRotatef(saturno, 0, 1, 0);
+	glTranslatef(16, 0, 0);
+	glRotatef(saturno, 0, 1, 0);
+	glColor3f(0.2, 0.6, 1.0);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, SaturnoDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, SaturnoSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, SaturnoShininess);
+
+	glutSolidSphere(0.9, 9, 9);
+	glRotatef(30, 1, 0, 0); //anillo1
 	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
 
-	glPushMatrix();//cuello
-	glTranslatef(-7.5, 1.75, 0);
-	glScalef(4, 1, 5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
+	glMaterialfv(GL_FRONT, GL_AMBIENT, Anillo1SaturnoDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, Anillo1SaturnoSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, Anillo1SaturnoShininess);
 
-	glPushMatrix();//cabeza
-	glTranslatef(-7.5, 4.25, 0);
-	glScalef(6, 4, 5);
-	glScalef(0.2, 0.40, 1);
-	glColor3f(0, 0, 1);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//muslo izq
-	glTranslatef(-4, -11.25, 0);
-	glScalef(3, 5, 5);
-	glColor3f(0.5, 0, 0.2);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//rod izq
-	glTranslatef(-4, -14.25, 0);
-	glScalef(3, 1, 5);
-	glColor3f(0, 1, 1);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//chamorro izq
-	glTranslatef(-4, -17.25, 0);
-	glScalef(3, 5, 5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//muslo der
-	glTranslatef(-11, -11.25, 0);
-	glScalef(3, 5, 5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//rod der
-	glTranslatef(-11, -14.25, 0);
-	glScalef(3, 1, 5);
+	glutSolidTorus(0.5, 2, 9, 9);
+	//glPopMatrix();
+	glRotatef(90, 1, 0, 0); //anillo2		
 	glColor3f(1, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//chamorro der
-	glTranslatef(-11, -17.25, 0);
-	glScalef(3, 5, 5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();	// brazo
-	glTranslatef(-2.5, 1.25, 0); //(-2.5,1.25,0) aqui se translada mi pivote para colocar la rotacion
-	glRotatef(angHombro, 0, 0, 1); //rotacion en mi pivote (-2.5,1.25,0)
-
-	glPushMatrix();//dibujar brazo
-	glTranslatef(2.5, -1.25, 0);	//aqui regresamos al origen (0,0,0) para dibujar nuestro prisma
-	glScalef(5, 2.5, 5);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix(); //antebrazo
-	glTranslatef(5, -1.25, 0); //pivote en (2.5,0,0)
-	glRotatef(angBrazo, 0, 1, 0);
-
-	glPushMatrix();//dibujar antebrazo
-	glTranslatef(3, 0, 0);	//vamos al centro de mi nuevo prisma para dibujarlo
-	glScalef(6, 2.5, 4);
-	glColor3f(1, 1, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix(); //palma
-	glTranslatef(6, 0, 0); //pivote en (8.5,0,0)
-	glRotatef(angPalma, 0, 1, 0); //rotacion en mi pivote Y
-
-	glPushMatrix();//dibujar palma
-	glTranslatef(1, 0, 0);	//vamos al centro de mi nuevo prisma para dibujarlo
-	glScalef(2, 2.5, 2);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix(); //Dedo pulgar 1ra parte
-	glTranslatef(1, 1.25, 0); //pivote en (9.5,1.25,0)
-	glRotatef(angDedo1, -1, 0, 0);
-
-	glPushMatrix();
-	glTranslatef(0, 0.25, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();		//dedo pulgar 2d parte
-	glTranslatef(0, 0.5, 0); //pivote en (9.5,1.75,0)
-	glRotatef(angDedo1, -1, 0, 0);
-
-	glPushMatrix();
-	glTranslatef(0, 0.25, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();	//dedo indice 2da parte
-	glTranslatef(1.5, -1, 0); //pivote (11,0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo indice 1ra parte
-	glTranslatef(-0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix(); //dedo indice 3er parte
-	glTranslatef(0.5, 0, 0); //pivote en (11.5,0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo anular 3er parte
-	glTranslatef(0, -1, 0); //pivote en (11.5,-0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo anular 2da parte
-	glTranslatef(-0.5, 0, 0); //pivote en (11,-0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//1ra parte
-	glTranslatef(-0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo meñique 3er parte
-	glTranslatef(0, -0.5, 0); //pivote en (11,-0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.125, 0, 0);
-	glScalef(0.25, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo meñique 2da parte
-	glTranslatef(-0.25, 0, 0); //pivote en (10.75,-0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.125, 0, 0);
-	glScalef(0.25, 0.5, 0.5);
-	glColor3f(0, 0, 1);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//primera parte
-	glTranslatef(-0.125, 0, 0);
-	glScalef(0.25, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo medio 1ra parte
-	glTranslatef(0.5, 1, 0); //pivote en (11.25,0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(-0.375, 0, 0);
-	glScalef(0.75, 0.5, 0.5);
-	glColor3f(0.5, 0, 0.2);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//2da parte dedo medio
-	glTranslatef(0.375, 0, 0);
-	glScalef(0.75, 0.5, 0.5);
-	glColor3f(0, 1, 1);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo medio 3ra parte
-	glTranslatef(0.75, 0, 0); //pivote en (12,0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.375, 0, 0);
-	glScalef(0.75, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-
-	//Mano derecha
-
-	glPushMatrix(); // brazo
-	glTranslatef(-12.5, 1.25, 0); //(-12.5,1.25,0) aqui se translada mi pivote para colocar la rotacion
-	glRotatef(angHombro, 0, 0, 1); //rotacion en mi pivote (-12.5,1.25,0)
-
-	glPushMatrix();//dibujar brazo
-	glTranslatef(-2.5, -1.25, 0);	//aqui vamos al origen de la figura para dibujar nuestro prisma
-	glScalef(5, 2.5, 5);
-	glColor3f(1, 1, 1);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//antebrazo
-	glTranslatef(-5, -1.25, 0); //pivote en (-17.5,0,0)
-	glRotatef(angBrazo2, 0, 1, 0);
-
-	glPushMatrix();//dibujar antebrazo
-	glTranslatef(-3, 0, 0);	//vamos al centro de mi nuevo prisma para dibujarlo
-	glScalef(6, 2.5, 4);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//palma
-	glTranslatef(-6, 0, 0); //pivote en (-23.5,0,0)
-	glRotatef(angPalma, 0, 1, 0); //rotacion en mi pivote Y
-
-	glPushMatrix();//dibujar palma
-	glTranslatef(-1, 0, 0);	//vamos al centro de mi nuevo prisma para dibujarlo
-	glScalef(2, 2.5, 2);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//Dedo pulgar 1ra parte
-	glTranslatef(-1, 1.25, 0); //pivote en (24.5.5,1.25,0)
-	glRotatef(angDedo1, -1, 0, 0);
-
-	glPushMatrix();
-	glTranslatef(0, 0.25, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0, 0, 1);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo pulgar 2da parte
-	glTranslatef(0, 0.5, 0); //pivote en (24.5.5,1.75,0)
-	glRotatef(angDedo1, -1, 0, 0);
-
-	glPushMatrix();
-	glTranslatef(0, 0.25, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0.5, 0, 0.2);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo indice 2da parte
-	glTranslatef(-1.5, -1, 0); //pivote (-26,0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0, 1, 1);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo indice 1ra parte
-	glTranslatef(-0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo indice 3er parte
-	glTranslatef(-0.5, 0, 0); //pivote en (-26.5,0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo anular 3er parte
-	glTranslatef(0, -1, 0); //pivote en (26.5,-0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(-0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo anular 2da parte
-	glTranslatef(0.5, 0, 0); //pivote en (26,-0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(-0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(1, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//1ra parte
-	glTranslatef(0.25, 0, 0);
-	glScalef(0.5, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-
-	glPushMatrix();//dedo meñique 3er parte
-	glTranslatef(0, -0.5, 0); //pivote en (26,-0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(-0.125, 0, 0);
-	glScalef(0.25, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
-
 
-	glPushMatrix();//dedo meñique 2da parte
-	glTranslatef(0.25, 0, 0); //pivote en (-26.25,-0.75,0)
-	glRotatef(angDedo1, 0, 1, 0);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, Anillo2SaturnoDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, Anillo2SaturnoSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, Anillo2SaturnoShininess);
 
-	glPushMatrix();
-	glTranslatef(0.125, 0, 0);
-	glScalef(0.25, 0.5, 0.5);
-	glColor3f(1, 1, 0);
-	prisma();
+	glutSolidTorus(0.4, 1.3, 10, 10);
 	glPopMatrix();
 
-	glPushMatrix();//primera parte
-	glTranslatef(-0.125, 0, 0);
-	glScalef(0.25, 0.5, 0.5);
-	glColor3f(0, 1, 0);
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(0.5, 1, 0); //pivote en (-26.25,0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();//1ra parte dedo medio
-	glTranslatef(-0.375, 0, 0);
-	glScalef(0.75, 0.5, 0.5);
-
-	prisma();
-	glPopMatrix();
-
-	glPushMatrix();//dedo medio 2da parte
-	glTranslatef(-0.75, 0, 0); //pivote en (-27,0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
+	glPushMatrix();//urano
+	glRotatef(urano, 0, 1, 0);
+	glTranslatef(20, 0, 0);
+	glRotatef(urano, 0, 1, 0);
+	glColor3f(0.0, 1.0, 1.0);
 
-	glPushMatrix();
-	glTranslatef(-0.375, 0, 0);
-	glScalef(0.75, 0.5, 0.5);
-	glColor3f(1, 0, 0);
-	prisma();
-	glPopMatrix();
+	glMaterialfv(GL_FRONT, GL_AMBIENT, UranoDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, UranoSpecular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, UranoShininess);
 
-	glPushMatrix();//dedo medio 3ra parte
-	glTranslatef(-0.75, 0, 0); //pivote en (-27,0.25,0)
-	glRotatef(angDedo1, 0, 1, 0);
-
-	glPushMatrix();
-	glTranslatef(-0.375, 0, 0);
-	glScalef(0.75, 0.5, 0.5);
-	glColor3f(1, 1, 0);
-	prisma();
+	glutSolidSphere(0.8, 9, 9);
 	glPopMatrix();
-
 
-
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
 	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-	glPopMatrix();
-
-
 
 
 	glutSwapBuffers();
-	// Swap The Buffers
+
+}
+
+void animacion()
+{
+	// Calculate the number of frames per one second:
+	//dwFrames++;
+	dwCurrentTime = GetTickCount(); // Even better to use timeGetTime()
+	dwElapsedTime = dwCurrentTime - dwLastUpdateTime;
+
+	if (dwElapsedTime >= 30)
+	{
+		sol = (sol - 3) % 360;	//cuando llegue a 360° se vuelve a inicializar la variable y sigue girando //su el 5 le ponemos menos gira mas lento
+		mercurio = (mercurio - 1) % 360;
+		venus = (venus - 1) % 360;
+		tierra = (tierra - 1) % 360;
+		luna = (luna - 2) % 360;
+		marte = (marte - 2) % 360;
+		luna1 = (luna1 - 2) % 360;
+		luna2 = (luna2 - 2) % 360;
+		jupiter = (jupiter - 1) % 360;
+		luna1Jupiter = (luna1Jupiter - 2) % 360;
+		luna2jupiter = (luna2jupiter - 2) % 360;
+		luna3jupiter = (luna3jupiter - 1) % 360;
+		saturno = (saturno - 3) % 360;
+		urano = (urano - 2) % 360;
+
+
+		dwLastUpdateTime = dwCurrentTime;
+	}
+
+	glutPostRedisplay();
 }
 
 void reshape(int width, int height)   // Creamos funcion Reshape
@@ -598,98 +388,45 @@ void reshape(int width, int height)   // Creamos funcion Reshape
 	glLoadIdentity();
 
 	// Tipo de Vista
-	//glOrtho(-5,5,-5,5,0.2,20);	
+
 	glFrustum(-0.1, 0.1, -0.1, 0.1, 0.1, 50.0);
 
 	glMatrixMode(GL_MODELVIEW);							// Seleccionamos Modelview Matrix
-	//glLoadIdentity();									
+	//glLoadIdentity();
 }
 
 void keyboard(unsigned char key, int x, int y)  // Create Keyboard Function
 {
 	switch (key) {
-	case 'w':
+	case 'w':   //Movimientos de camara
 	case 'W':
-		transZ += 0.2f;
+		camaraZ += 0.5f;
 		break;
 	case 's':
 	case 'S':
-		transZ -= 0.2f;
+		camaraZ -= 0.5f;
 		break;
 	case 'a':
 	case 'A':
-		transX += 0.2f;
+		camaraX -= 0.5f;
 		break;
 	case 'd':
 	case 'D':
-		transX -= 0.2f;
+		camaraX += 0.5f;
 		break;
-	case 'h':
-		//para rotar el hombro en z, lim 90°
-		if (angHombro < 90) {
-			angHombro += 0.5f;
-			printf("%f", angHombro);
-		}
+
+	case 'i':		//Movimientos de Luz
+	case 'I':
+
 		break;
-	case 'H':
-		//para rotar el hombro en sentido negativo
-		if (angHombro > -90) {
-			angHombro -= 0.5f;
-			printf("%f", angHombro);
-		}
+	case 'k':
+	case 'K':
+
 		break;
-	case 'l':
-		//para rotar el antebrazo en Y enfrente con lim90°
-		if (angBrazo < 0) {
-			angBrazo += 0.5f;
-			printf("%f", angBrazo);
-		}
-		break;
+
+	case 'l':   //Activamos/desactivamos luz
 	case 'L':
-		//para rotar el antebrazo para atras
-		if (angBrazo > -90) {
-			angBrazo -= 0.5f;
-		}
 		break;
-	case 'p':
-		//para rotar palma en Y enfrente 90°
-		if (angPalma < 90) {
-			angPalma += 0.5f;
-		}
-		break;
-	case 'P':
-		//para rotar el palma atras 90°
-		if (angPalma > -90) {
-			angPalma -= 0.5f;
-		}
-		break;
-	case 'm':
-		//rotar los dedos
-		if (angDedo1 < 10) {
-			angDedo1 += 0.5f;
-		}
-		break;
-	case 'M':
-		//rotar los dedos
-		if (angDedo1 > -10) {
-			angDedo1 -= 0.5f;
-		}
-		break;
-
-	case 'y':
-		//para rotar el antebrazo en Y enfrente con lim90°
-		if (angBrazo2 < 90) {
-			angBrazo2 += 0.5f;
-			printf("%f", angBrazo);
-		}
-		break;
-	case 'Y':
-		//para rotar el antebrazo para atras
-		if (angBrazo2 < 0) {
-			angBrazo2 -= 0.5f;
-		}
-		break;
-
 	case 27:        // Cuando Esc es presionado...
 		exit(0);   // Salimos del programa
 		break;
@@ -702,17 +439,17 @@ void keyboard(unsigned char key, int x, int y)  // Create Keyboard Function
 void arrow_keys(int a_keys, int x, int y)  // Funcion para manejo de teclas especiales (arrow keys)
 {
 	switch (a_keys) {
-	case GLUT_KEY_UP:		// Presionamos tecla ARRIBA...
-		angleX += 2.0f;
+	case GLUT_KEY_UP:     // Presionamos tecla ARRIBA...
+
 		break;
-	case GLUT_KEY_DOWN:		// Presionamos tecla ABAJO...
-		angleX -= 2.0f;
+	case GLUT_KEY_DOWN:               // Presionamos tecla ABAJO...
+
 		break;
 	case GLUT_KEY_LEFT:
-		angleY += 2.0f;
+
 		break;
 	case GLUT_KEY_RIGHT:
-		angleY -= 2.0f;
+
 		break;
 	default:
 		break;
@@ -721,23 +458,19 @@ void arrow_keys(int a_keys, int x, int y)  // Funcion para manejo de teclas espe
 }
 
 
-
 int main(int argc, char** argv)   // Main Function
 {
 	glutInit(&argc, argv); // Inicializamos OpenGL
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH); // Display Mode (Clores RGB y alpha | Buffer Doble )
-	screenW = glutGet(GLUT_SCREEN_WIDTH);
-	screenH = glutGet(GLUT_SCREEN_HEIGHT);
 	glutInitWindowSize(500, 500);	// Tamaño de la Ventana
-	glutInitWindowPosition(0, 0);	//Posicion de la Ventana
-	glutCreateWindow("Robot Sensual"); // Nombre de la Ventana
-	printf("Resolution H: %i \n", screenW);
-	printf("Resolution V: %i \n", screenH);
+	glutInitWindowPosition(20, 60);	//Posicion de la Ventana
+	glutCreateWindow("Sistema Solar Sensual"); // Nombre de la Ventana
 	InitGL();						// Parametros iniciales de la aplicacion
 	glutDisplayFunc(display);  //Indicamos a Glut función de dibujo
 	glutReshapeFunc(reshape);	//Indicamos a Glut función en caso de cambio de tamano
 	glutKeyboardFunc(keyboard);	//Indicamos a Glut función de manejo de teclado
 	glutSpecialFunc(arrow_keys);	//Otras
+	glutIdleFunc(animacion);
 	glutMainLoop();          // 
 
 	return 0;
