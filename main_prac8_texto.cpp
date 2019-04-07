@@ -2,7 +2,7 @@
 //*******************************************************************************//
 //*******************************************************************************//
 //************** Alumno (s):  Bermudez Sotelo Gustavo ***************************//
-//************** practica 8 Mesa de texturas **********************************//
+//************** practica 9 Mesa de texturas y sillas **********************************//
 //*************	visual studio 2017 **********************************************//
 //***************Grupo: 02     **************************************************//
 
@@ -22,8 +22,59 @@ CTexture t_Ajedrez1;
 CTexture t_Ajedrez2;
 CTexture marmol;
 CTexture pizza;
+CTexture tree;
+CTexture bambi;
 
 int font = (int)GLUT_BITMAP_TIMES_ROMAN_24;
+
+
+void silla()
+{
+	glPushMatrix();
+	glDisable(GL_LIGHTING);
+	glEnable(GL_ALPHA_TEST);
+	//glDisable(GL_DEPTH_TEST);   // Turn Depth Testing Off
+	glAlphaFunc(GL_GREATER, 0.25);
+	//glEnable(GL_BLEND);     // Turn Blending On
+	//glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, tree.GLindex);
+	glPushMatrix();
+	glRotatef(105, 1, 0, 0);
+	glBegin(GL_QUADS); //plano
+	glColor3f(1.0, 1.0, 1.0);
+	glNormal3f(0.0f, 0.0f, 1.0f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(-7.5, 0.0, 0.0);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(7.5, 0.0, 0.0);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(7.5, 15.0, 0.0);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-7.5, 15.0, 0.0);
+	glEnd();
+}
+	
+
+void bambi1()
+{
+	glPushMatrix();
+	glDisable(GL_LIGHTING);
+	glEnable(GL_ALPHA_TEST);
+	//glDisable(GL_DEPTH_TEST);   // Turn Depth Testing Off
+	glAlphaFunc(GL_GREATER, 0.25);
+	//glEnable(GL_BLEND);     // Turn Blending On
+	//glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, bambi.GLindex);
+	glPushMatrix();
+	glRotatef(105, 1, 0, 0);
+	glBegin(GL_QUADS); //plano
+	glColor3f(1.0, 1.0, 1.0);
+	glNormal3f(0.0f, 0.0f, 1.0f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(-7.5, 0.0, 0.0);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(7.5, 0.0, 0.0);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(7.5, 15.0, 0.0);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-7.5, 15.0, 0.0);
+	glEnd();
+}
+
+
+
 
 void InitGL(GLvoid)     // Inicializamos parametros
 {
@@ -56,6 +107,14 @@ void InitGL(GLvoid)     // Inicializamos parametros
 	pizza.LoadTGA("madera.tga");
 	pizza.BuildGLTexture();
 	pizza.ReleaseImage();
+
+	tree.LoadTGA("sillacool.tga");
+	tree.BuildGLTexture();
+	tree.ReleaseImage();
+
+	bambi.LoadTGA("bambi.tga");
+	bambi.BuildGLTexture();
+	bambi.ReleaseImage();
 
 }
 
@@ -215,6 +274,22 @@ void display(void)   // Creamos la funcion donde se dibuja
 	glColor3f(1.0, 1.0, 1.0);
 	glScalef(1.0, 1.0, 3.0);
 	prisma(pizza.GLindex, pizza.GLindex);// se le ponemos la imagent_image en lugar de t_metal se ve en todo
+	glPopMatrix();
+
+
+	glEnable(GL_COLOR_MATERIAL);	//silla
+	glPushMatrix();
+	glTranslatef(5.0, 4.0, -4.5);
+	glScalef(.30, .30, 0.60);
+	silla();
+	glPopMatrix();
+
+
+	glEnable(GL_COLOR_MATERIAL);	//silla
+	glPushMatrix();
+	glTranslatef(-5.0, 4.0, -4.5);
+	glScalef(.30, .30, 0.60);
+	bambi1();
 	glPopMatrix();
 
 
